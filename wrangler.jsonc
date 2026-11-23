@@ -1,0 +1,33 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "tegawari-site",
+	"main": "./src/worker.ts",
+	// 管理画面（/_emdash）は src/worker.ts で tegawari.com 以外では404にしている
+	"workers_dev": false,
+	"preview_urls": false,
+	"compatibility_date": "2026-02-24",
+	"compatibility_flags": ["nodejs_compat"],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "tegawari-site",
+			"database_id": "62c03002-77dd-4b15-922f-45605f9233a4",
+		},
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "tegawari-media",
+		},
+	],
+	// お問い合わせフォームの転送。宛先は秘密の値 CONTACT_TO（wrangler secret put CONTACT_TO）で入れ、ここには書かない
+	// 宛先は Email Routing で確認済みのアドレスである必要がある
+	"send_email": [
+		{
+			"name": "SEND_EMAIL",
+		},
+	],
+	"triggers": {
+		"crons": ["* * * * *"],
+	},
+}

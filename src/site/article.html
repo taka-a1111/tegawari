@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<!-- BUILD_TAG: {{BUILD}} -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>{{TITLE}}｜テガワリ</title>
+<meta name="description" content="{{DESC}}">
+<link rel="canonical" href="{{URL}}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{TITLE}}">
+<meta property="og:description" content="{{DESC}}">
+<meta property="og:url" content="{{URL}}">
+<meta property="og:image" content="https://tegawari.com/blog/img/{{EYECATCH}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="テガワリ">
+<meta property="og:locale" content="ja_JP">
+<meta property="article:published_time" content="{{DATE}}">
+<meta property="article:section" content="{{CAT}}">
+<meta name="robots" content="max-image-preview:large, max-snippet:-1">
+<link rel="alternate" type="application/rss+xml" title="テガワリ ブログ" href="https://tegawari.com/feed.xml">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/favicon.svg?v=20261123a" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css?v={{BUILD}}">
+<script type="application/ld+json">{{LD}}</script>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a href="../" class="logo" aria-label="テガワリ トップへ"><img class="logo-img" src="../assets/logo.svg?v=20261123a" alt="テガワリ" width="371" height="100"></a>
+    <nav class="gnav" id="gnav" aria-label="メインメニュー"><a href="../service.html">サービス</a><a href="../price.html">料金</a><a href="index.html" class="current" aria-current="page">ブログ</a><a href="../about.html">運営者</a><a href="../shindan.html" class="btn-head">無料業務診断</a></nav>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="gnav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg><span>メニュー</span></button>
+  </div>
+</header>
+<main id="main">
+    <div class="page-hero"><div class="wrap">
+    <nav class="crumbs" aria-label="現在地"><a href="../">トップ</a> / <a href="index.html">ブログ</a> / {{CAT}}</nav>
+    <h1>{{TITLE}}</h1>
+    <p><time datetime="{{DATE}}">{{DATE_DOT}}</time></p>
+    <figure class="eyecatch"><img src="img/{{EYECATCH}}" alt="{{EYECATCH_ALT}}" width="1200" height="630"></figure>
+  </div></div>
+<section class="sub-sec"><div class="wrap article">
+  <div class="prose">
+{{BODY}}
+    <div class="author"><b>この記事を書いた人</b><br>テガワリ（運営：インフォサクセス）　自分の受託業務をAIエージェントで回している実務者。SEO 15年以上、Web制作 12年以上、SEO検定1級。<a href="../about.html">運営者情報</a></div>
+  </div>
+  <aside class="toc" aria-label="目次"><strong>目次</strong><ol>{{TOC}}</ol></aside>
+</div></section>
+<section class="cta-band"><div class="wrap"><div><h2>まずは、どの業務から始めるか。</h2><p>無料の業務診断で、御社で最初にAIに任せる業務の候補を出します。</p></div><a href="../shindan.html" class="btn-cta">無料で業務診断を受ける</a></div></section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <a href="../" class="logo"><img class="logo-img" src="../assets/logo-white.svg?v=20261123a" alt="テガワリ" width="371" height="100" loading="lazy"></a>
+    <nav class="foot-links" aria-label="サイト情報"><a href="../service.html">サービス</a><a href="../price.html">料金</a><a href="../shindan.html">無料業務診断</a><a href="index.html">ブログ</a><a href="../about.html">運営者情報</a><a href="../contact.html">お問い合わせ</a><a href="../tokushoho.html">特定商取引法に基づく表記</a><a href="../terms.html">利用規約</a><a href="../privacy.html">プライバシーポリシー</a></nav>
+    <p class="foot-meta">運営：インフォサクセス</p>
+  </div>
+</footer>
+<script src="../assets/site.js?v={{BUILD}}"></script>
+</body>
+</html>

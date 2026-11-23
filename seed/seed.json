@@ -1,0 +1,85 @@
+{
+	"$schema": "https://emdashcms.com/seed.schema.json",
+	"version": "1",
+	"meta": {
+		"name": "テガワリ",
+		"description": "テガワリ（tegawari.com）のブログ記事の型"
+	},
+	"settings": {
+		"title": "テガワリ",
+		"tagline": "中小企業のAIエージェント導入と顧問"
+	},
+	"collections": [
+		{
+			"slug": "posts",
+			"label": "ブログ記事",
+			"labelSingular": "ブログ記事",
+			"urlPattern": "/blog/{slug}.html",
+			"supports": [
+				"drafts",
+				"revisions",
+				"preview",
+				"search"
+			],
+			"commentsEnabled": false,
+			"fields": [
+				{
+					"slug": "title",
+					"label": "タイトル（主題｜副題）",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "num",
+					"label": "記事番号（001 など）",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "date",
+					"label": "公開日（YYYY-MM-DD、日本時間のこの日から公開）",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "modified",
+					"label": "更新日（YYYY-MM-DD、任意）",
+					"type": "string"
+				},
+				{
+					"slug": "cat",
+					"label": "カテゴリ",
+					"type": "string",
+					"required": true
+				},
+				{
+					"slug": "description",
+					"label": "メタディスクリプション",
+					"type": "text"
+				},
+				{
+					"slug": "eyecatch",
+					"label": "アイキャッチのファイル名（blog/img/ の中）",
+					"type": "string"
+				},
+				{
+					"slug": "eyecatch_alt",
+					"label": "アイキャッチの代替テキスト",
+					"type": "string"
+				},
+				{
+					"slug": "toc",
+					"label": "目次の短い名前（h2 の全文 → 短い名前）",
+					"type": "json"
+				},
+				{
+					"slug": "body_html",
+					"label": "本文（HTML。h2・h3・figure・装飾は build.py と同じ書き方）",
+					"type": "text",
+					"searchable": true
+				}
+			]
+		}
+	]
+}
