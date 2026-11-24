@@ -19,7 +19,7 @@ p{margin:0}
 /* ヘッダー */
 .site-header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line)}
 .site-header .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
-.logo{display:inline-flex;align-items:center}.logo-img{height:34px;width:auto}
+.logo{display:inline-flex;align-items:center}.logo-img{height:46px;width:auto}
 .gnav{display:flex;align-items:center;gap:26px;font-size:15px;font-weight:500}
 .gnav a{color:var(--text);text-decoration:none}.gnav a:hover,.gnav a.current{color:var(--accent)}
 .gnav a.btn-head{background:var(--accent);color:#fff;padding:9px 18px;border-radius:8px;font-weight:700;font-size:14px}
@@ -142,7 +142,7 @@ section{padding:72px 0}
 /* フッター */
 .site-footer{background:#0f1f33;color:#c8d2de;padding:40px 0 28px;font-size:14px}
 .site-footer .wrap{display:flex;flex-direction:column;gap:18px}
-.site-footer .logo-img{height:30px}
+.site-footer .logo-img{height:40px}
 .foot-links{display:flex;flex-wrap:wrap;gap:8px 22px}.foot-links a{color:#c8d2de;text-decoration:none}.foot-links a:hover{color:#fff}
 .foot-meta{font-size:12px;color:#8d9bad}
 @media (max-width:900px){
