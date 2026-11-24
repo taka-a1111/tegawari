@@ -159,3 +159,42 @@
       .catch(function(){ show('通信がうまくいきませんでした。少し待ってからお試しください。', true); sb.disabled = false; });
   });
 })();
+// 表示の動き（スクロールで、見出しやカードをふわっと出す）
+(function(){
+  if (!('IntersectionObserver' in window)) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var els = document.querySelectorAll('.sec-head, .uc-head, .uc-card, .steps li, .plan, .ba-col, .promise, .faq-head, .tile, .post-card');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -8% 0px' });
+  els.forEach(function(el, i){
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
+    el.classList.add('reveal');
+    el.style.transitionDelay = ((i % 3) * 80) + 'ms';
+    io.observe(el);
+  });
+})();
+// トップの「業務診断の結果」見本を、業種で切り替える
+(function(){
+  var tabs = document.querySelectorAll('.demo-tabs button');
+  var ol = document.getElementById('demo-rank');
+  if (!tabs.length || !ol) return;
+  var D = [
+    [['問い合わせへの一次返信','任せやすさ 高・下書きはAI、送信は人'],['見積書・請求書の作成','任せやすさ 高・決まった形の入力が多い'],['ブログ記事の下書き','任せやすさ 中・事実の確認の手順を先に決める']],
+    [['申請書類・契約書の下書き','任せやすさ 高・ひな形から下書き、判断は先生'],['議事録・報告書のまとめ','任せやすさ 高・面談のメモから要点をまとめる'],['問い合わせへの一次返信','任せやすさ 中・一般的な案内の返信から']],
+    [['原稿の校正・修正依頼のまとめ','任せやすさ 高・表記ゆれの確認と依頼の整理'],['見積書・請求書の作成','任せやすさ 高・決まった形の入力が多い'],['ブログ・SNSの下書き','任せやすさ 高・制作の知識で確認が速い']],
+    [['予約の受付・問診票の整理','任せやすさ 高・予約の確認と問診の転記'],['問い合わせへの一次返信','任せやすさ 中・症状についての返信は人'],['表計算への転記・集計','任せやすさ 中・決まった形の集計から']]
+  ];
+  function esc(s){ return s.replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+  tabs.forEach(function(b){
+    b.addEventListener('click', function(){
+      var i = Number(b.getAttribute('data-demo'));
+      tabs.forEach(function(x){ x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
+      ol.classList.add('swap');
+      setTimeout(function(){
+        ol.innerHTML = D[i].map(function(r, n){ return '<li><b>' + (n + 1) + '</b><div>' + esc(r[0]) + '<small>' + esc(r[1]) + '</small></div></li>'; }).join('');
+        ol.classList.remove('swap');
+      }, 200);
+    });
+  });
+})();
