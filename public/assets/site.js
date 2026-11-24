@@ -52,16 +52,20 @@
     schedule: ['日程調整・リマインド', 2, 'カレンダーとメールをつなぐと、手間を大きく減らせます。'],
     manual: ['社内マニュアル・手順書づくり', 2, '担当者の説明を文章に起こす作業は、AIで早く進められます。']
   };
+  var shown = Date.now();
+  var last = null;
   f.addEventListener('submit', function(e){
     e.preventDefault();
     var msg = document.getElementById('dx-msg');
     var rows = [];
+    var ans = {};
     var missing = 0;
     Object.keys(TASKS).forEach(function(k){
       var t = f.querySelector('input[name="t_' + k + '"]:checked');
       var s = f.querySelector('input[name="s_' + k + '"]:checked');
       if (!t || !s) { missing++; return; }
       var time = Number(t.value), std = Number(s.value);
+      ans[k] = { t: time, s: std };
       if (time === 0) return;
       rows.push({ k: k, score: time * std * TASKS[k][1], time: time, std: std });
     });
@@ -86,5 +90,33 @@
     });
     box.classList.add('show');
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    last = { answers: ans, industry: document.getElementById('dx-ind').value, size: document.getElementById('dx-size').value };
+    if (mf) mf.hidden = false;
+  });
+  // 結果票をメールで受け取る
+  var mf = document.getElementById('dx-mail');
+  if (mf) mf.addEventListener('submit', function(e){
+    e.preventDefault();
+    var m = document.getElementById('m-msg');
+    var sb = mf.querySelector('button[type=submit]');
+    var v = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    var show = function(t, err){ m.textContent = t; m.classList.toggle('err', !!err); m.classList.add('show'); };
+    if (!last) return show('先に「結果を見る」を押してください。', true);
+    if (!v('m-name') || !v('m-email')) return show('お名前とメールアドレスを入力してください。', true);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('m-email'))) return show('メールアドレスの形を確かめてください。', true);
+    if (!document.getElementById('m-agree').checked) return show('プライバシーポリシーへの同意にチェックを入れてください。', true);
+    sb.disabled = true;
+    fetch('/api/shindan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
+      company: v('m-company'), name: v('m-name'), email: v('m-email'), website: v('m-website'),
+      consent: document.getElementById('m-consent').checked, agree: true, elapsed: Date.now() - shown,
+      answers: last.answers, industry: last.industry, size: last.size
+    }) })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j.ok) { show('受け付けました。数分以内に、ご入力のメールアドレスへ結果票をお送りします。届かないときは、迷惑メールのフォルダもご確認ください。'); mf.reset(); }
+        else { show(j.message || '送信できませんでした。', true); }
+        sb.disabled = false;
+      })
+      .catch(function(){ show('通信がうまくいきませんでした。少し待ってからお試しください。', true); sb.disabled = false; });
   });
 })();

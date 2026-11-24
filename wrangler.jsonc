@@ -27,6 +27,12 @@
 			"name": "SEND_EMAIL",
 		},
 	],
+	// 業務診断の結果票の PDF づくり（Browser Rendering）
+	"browser": { "binding": "BROWSER" },
+	// 業務診断の結果票の差出人。Resend の API キーは秘密の値 RESEND_API_KEY（wrangler secret put）で入れる
+	"vars": {
+		"SHINDAN_MAIL_FROM": "テガワリ <shindan@tegawari.com>",
+	},
 	"triggers": {
 		"crons": ["* * * * *"],
 	},
