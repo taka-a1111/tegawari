@@ -52,6 +52,41 @@
     schedule: ['日程調整・リマインド', 2, 'カレンダーとメールをつなぐと、手間を大きく減らせます。'],
     manual: ['社内マニュアル・手順書づくり', 2, '担当者の説明を文章に起こす作業は、AIで早く進められます。']
   };
+  // 業種ごとの追加の業務と、相性・説明の上書き（src/server/shindan.js と同じ）
+  var IND = {
+    '士業': { extra: ['shorui', '申請書類・契約書の下書き', 3, 'ひな形と案件の情報から下書きを作り、最後の確認と判断は先生が行います。'], fit: { inquiry: [2, '一般的な案内の返信は任せやすく、個別の判断を含む返信は人が書きます。'] } },
+    'Web・制作会社': { extra: ['kousei', '原稿の校正・修正依頼のまとめ', 3, '誤字や表記ゆれの確認、お客さまからの修正依頼の整理は、AIで早く進められます。'], fit: { article: [3, '制作の知識がある分、下書きの確認が速く、任せやすい業務です。'] } },
+    '建設・塗装': { extra: ['genba', '現場写真の整理・日報づくり', 2, '写真とメモから日報や報告書の下書きを作れます。写真の分け方の決まりを先に作ります。'], fit: {} },
+    'EC・小売': { extra: ['shohin', '商品説明文・レビューへの返信', 3, '商品の情報から説明文の下書きを作り、表現の確認は人が行います。'], fit: {} },
+    '治療院・クリニック': { extra: ['yoyaku', '予約の受付・問診票の整理', 2, '予約の確認や問診の転記は任せやすく、症状の判断は人が行います。'], fit: { inquiry: [2, '予約や料金の案内は任せやすく、症状についての返信は人が書きます。'], article: [1, '医療広告のルールがあるため、下書きでも確認の手間が大きい業務です。'] } }
+  };
+  var SIZE_TIP = {
+    '1〜4名': '少人数の会社は、代表の方ご自身が時間を使っている業務から選ぶと、早く効果が出ます。',
+    '5〜20名': '担当者が決まっている業務から選ぶと、手順をそろえやすく、効果も測りやすくなります。',
+    '21〜50名': '部署ごとに手順が違うことが多いため、1つの部署で試してから広げます。',
+    '51名以上': '情報の扱いのルールを先に決め、1つの部署で試してから広げます。'
+  };
+  function tasksFor(ind){
+    var d = IND[ind], out = {};
+    Object.keys(TASKS).forEach(function(k){ var o = d && d.fit[k]; out[k] = o ? [TASKS[k][0], o[0], o[1]] : TASKS[k]; });
+    if (d) out[d.extra[0]] = d.extra.slice(1);
+    return out;
+  }
+  var indSel = document.getElementById('dx-ind');
+  var extraBox = document.createElement('div');
+  var fsets = f.querySelectorAll('fieldset');
+  (fsets.length ? fsets[fsets.length - 1] : f).appendChild(extraBox);
+  function opt(name, v, label){ return '<label><input type="radio" name="' + name + '" value="' + v + '" required><span>' + label + '</span></label>'; }
+  function drawExtra(){
+    var d = IND[indSel.value];
+    if (!d) { extraBox.innerHTML = ''; return; }
+    var k = d.extra[0];
+    extraBox.innerHTML = '<div class="q"><div>' + d.extra[1] + '<small style="display:block;font-size:12px;color:var(--muted)">（' + indSel.value + 'の方への追加の質問）</small></div><div><div class="opts">' +
+      opt('t_' + k, 0, 'していない') + opt('t_' + k, 1, '週1時間未満') + opt('t_' + k, 2, '週1〜5時間') + opt('t_' + k, 3, '週5時間以上') +
+      '</div></div><div style="font-size:14px;color:var(--muted)">手順は決まっていますか</div><div><div class="opts">' +
+      opt('s_' + k, 2, 'ほぼ決まっている') + opt('s_' + k, 1, '人によって違う') + '</div></div></div>';
+  }
+  if (indSel) { indSel.addEventListener('change', drawExtra); drawExtra(); }
   var shown = Date.now();
   var last = null;
   f.addEventListener('submit', function(e){
@@ -60,14 +95,15 @@
     var rows = [];
     var ans = {};
     var missing = 0;
-    Object.keys(TASKS).forEach(function(k){
+    var T = tasksFor(indSel ? indSel.value : '');
+    Object.keys(T).forEach(function(k){
       var t = f.querySelector('input[name="t_' + k + '"]:checked');
       var s = f.querySelector('input[name="s_' + k + '"]:checked');
       if (!t || !s) { missing++; return; }
       var time = Number(t.value), std = Number(s.value);
       ans[k] = { t: time, s: std };
       if (time === 0) return;
-      rows.push({ k: k, score: time * std * TASKS[k][1], time: time, std: std });
+      rows.push({ k: k, score: time * std * T[k][1], time: time, std: std });
     });
     if (missing) { msg.textContent = 'まだ答えていない質問があります（' + missing + '件）。'; msg.classList.add('show'); return; }
     msg.classList.remove('show');
@@ -82,12 +118,15 @@
       var li = document.createElement('li');
       var b = document.createElement('b'); b.textContent = String(i + 1);
       var d = document.createElement('div');
-      d.appendChild(document.createTextNode(TASKS[r.k][0]));
+      d.appendChild(document.createTextNode(T[r.k][0]));
       var sm = document.createElement('small');
       var lv = r.score >= 12 ? '高' : r.score >= 6 ? '中' : '低';
-      sm.textContent = '任せやすさ ' + lv + '・' + TASKS[r.k][2] + (r.std === 1 ? '（手順が人によって違うため、先に手順をそろえます）' : '');
+      sm.textContent = '任せやすさ ' + lv + '・' + T[r.k][2] + (r.std === 1 ? '（手順が人によって違うため、先に手順をそろえます）' : '');
       d.appendChild(sm); li.appendChild(b); li.appendChild(d); ol.appendChild(li);
     });
+    var tip = document.getElementById('dx-tip');
+    var sz = document.getElementById('dx-size');
+    if (tip) tip.textContent = sz && SIZE_TIP[sz.value] ? '始め方のひとこと：' + SIZE_TIP[sz.value] : '';
     box.classList.add('show');
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     last = { answers: ans, industry: document.getElementById('dx-ind').value, size: document.getElementById('dx-size').value };

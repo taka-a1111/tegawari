@@ -24,19 +24,64 @@ export const TASKS = {
 	schedule: ["日程調整・リマインド", 2, "カレンダーとメールをつなぐと、手間を大きく減らせます。"],
 	manual: ["社内マニュアル・手順書づくり", 2, "担当者の説明を文章に起こす作業は、AIで早く進められます。"],
 };
+/** 業種ごとの追加の業務（キー・名前・相性・説明）と、相性・説明の上書き。画面の site.js と同じ */
+export const IND = {
+	"士業": {
+		extra: ["shorui", "申請書類・契約書の下書き", 3, "ひな形と案件の情報から下書きを作り、最後の確認と判断は先生が行います。"],
+		fit: { inquiry: [2, "一般的な案内の返信は任せやすく、個別の判断を含む返信は人が書きます。"] },
+	},
+	"Web・制作会社": {
+		extra: ["kousei", "原稿の校正・修正依頼のまとめ", 3, "誤字や表記ゆれの確認、お客さまからの修正依頼の整理は、AIで早く進められます。"],
+		fit: { article: [3, "制作の知識がある分、下書きの確認が速く、任せやすい業務です。"] },
+	},
+	"建設・塗装": {
+		extra: ["genba", "現場写真の整理・日報づくり", 2, "写真とメモから日報や報告書の下書きを作れます。写真の分け方の決まりを先に作ります。"],
+		fit: {},
+	},
+	"EC・小売": {
+		extra: ["shohin", "商品説明文・レビューへの返信", 3, "商品の情報から説明文の下書きを作り、表現の確認は人が行います。"],
+		fit: {},
+	},
+	"治療院・クリニック": {
+		extra: ["yoyaku", "予約の受付・問診票の整理", 2, "予約の確認や問診の転記は任せやすく、症状の判断は人が行います。"],
+		fit: {
+			inquiry: [2, "予約や料金の案内は任せやすく、症状についての返信は人が書きます。"],
+			article: [1, "医療広告のルールがあるため、下書きでも確認の手間が大きい業務です。"],
+		},
+	},
+};
+/** 従業員数ごとの、始め方のひとこと */
+export const SIZE_TIP = {
+	"1〜4名": "少人数の会社は、代表の方ご自身が時間を使っている業務から選ぶと、早く効果が出ます。",
+	"5〜20名": "担当者が決まっている業務から選ぶと、手順をそろえやすく、効果も測りやすくなります。",
+	"21〜50名": "部署ごとに手順が違うことが多いため、1つの部署で試してから広げます。",
+	"51名以上": "情報の扱いのルールを先に決め、1つの部署で試してから広げます。",
+};
+/** その業種で使う業務の一覧（{k:[名前, 相性, 説明]}） */
+export function tasksFor(industry) {
+	const ind = IND[industry];
+	const out = {};
+	for (const k of Object.keys(TASKS)) {
+		const o = ind && ind.fit[k];
+		out[k] = o ? [TASKS[k][0], o[0], o[1]] : TASKS[k];
+	}
+	if (ind) out[ind.extra[0]] = ind.extra.slice(1);
+	return out;
+}
 export const INDUSTRIES = ["士業", "Web・制作会社", "建設・塗装", "EC・小売", "治療院・クリニック", "そのほか"];
 export const SIZES = ["1〜4名", "5〜20名", "21〜50名", "51名以上"];
 const TIME_LABEL = ["していない", "週1時間未満", "週1〜5時間", "週5時間以上"];
 const STD_LABEL = { 1: "人によって違う", 2: "ほぼ決まっている" };
 
 /** 回答から順位を出す（画面と同じ計算） */
-export function rank(answers) {
+export function rank(answers, industry) {
+	const T = tasksFor(industry);
 	const rows = [];
-	for (const k of Object.keys(TASKS)) {
+	for (const k of Object.keys(T)) {
 		const a = answers[k];
 		if (!a) continue;
 		const time = Number(a.t), std = Number(a.s);
-		rows.push({ k, name: TASKS[k][0], time, std, score: time * std * TASKS[k][1], note: TASKS[k][2] });
+		rows.push({ k, name: T[k][0], fit: T[k][1], time, std, score: time * std * T[k][1], note: T[k][2] });
 	}
 	rows.sort((a, b) => b.score - a.score);
 	return rows;
@@ -44,10 +89,10 @@ export function rank(answers) {
 export const level = (score) => (score >= 12 ? "高" : score >= 6 ? "中" : score > 0 ? "低" : "－");
 
 /** 入力の検査。正しければ answers（{k:{t,s}}）を返す */
-export function parseAnswers(raw) {
+export function parseAnswers(raw, industry) {
 	if (!raw || typeof raw !== "object") return null;
 	const out = {};
-	for (const k of Object.keys(TASKS)) {
+	for (const k of Object.keys(tasksFor(industry))) {
 		const a = raw[k];
 		if (!a) return null;
 		const t = Number(a.t), s = Number(a.s);
@@ -130,7 +175,7 @@ const dateJa = (iso) => {
 
 export function buildReportHtml(row, logoSvg) {
 	const answers = JSON.parse(row.answers);
-	const rows = rank(answers);
+	const rows = rank(answers, row.industry);
 	const top = rows.filter((r) => r.score > 0).slice(0, 3);
 	const no = receiptNo(row.id, row.created_at);
 	const who = row.company ? `${esc(row.company)}　${esc(row.name)} 様` : `${esc(row.name)} 様`;
@@ -149,7 +194,7 @@ export function buildReportHtml(row, logoSvg) {
 	const tableRows = rows
 		.map(
 			(r, i) =>
-				`<tr><td class="c">${r.score > 0 ? i + 1 : "－"}</td><td>${esc(r.name)}</td><td>${TIME_LABEL[r.time]}</td><td>${STD_LABEL[r.std]}</td><td class="c">${"●".repeat(TASKS[r.k][1])}${"○".repeat(3 - TASKS[r.k][1])}</td><td class="c"><b>${level(r.score)}</b></td></tr>`,
+				`<tr><td class="c">${r.score > 0 ? i + 1 : "－"}</td><td>${esc(r.name)}</td><td>${TIME_LABEL[r.time]}</td><td>${STD_LABEL[r.std]}</td><td class="c">${"●".repeat(r.fit)}${"○".repeat(3 - r.fit)}</td><td class="c"><b>${level(r.score)}</b></td></tr>`,
 		)
 		.join("");
 
@@ -183,7 +228,7 @@ h2{font-size:16px;font-weight:900;color:var(--navy);margin:22px 0 10px;padding-l
 .meta{font-size:11px;color:var(--light)}
 .none{background:var(--pale);padding:14px}
 table{width:100%;border-collapse:collapse;font-size:11.5px}
-th,td{border-bottom:1px solid var(--rule);padding:4px 6px;text-align:left}
+th,td{border-bottom:1px solid var(--rule);padding:3px 6px;text-align:left}
 th{background:var(--navy);color:#fff;font-weight:700}
 td.c,th.c{text-align:center}
 .note{font-size:10.5px;color:var(--light);margin-top:6px}
@@ -206,7 +251,7 @@ ul.chk li::before{content:"✓";position:absolute;left:0;color:var(--org);font-w
 <div class="prof"><div>業種：${esc(row.industry)}</div><div>従業員数：${esc(row.size)}</div></div>
 <h2>AIに任せやすい業務の候補</h2>
 ${topHtml}
-<h2>9つの業務の一覧</h2>
+<h2>${rows.length}つの業務の一覧</h2>
 <table><thead><tr><th class="c">順位</th><th>業務</th><th>かかっている時間</th><th>手順</th><th class="c">AIとの相性</th><th class="c">任せやすさ</th></tr></thead><tbody>${tableRows}</tbody></table>
 <p class="note">任せやすさは、かかっている時間・手順の決まり方・AIとの相性（●の数）を掛け合わせた目安です。実際の進め方は、業務の中身を伺ってから決めます。</p>
 ${foot(1)}
@@ -215,7 +260,7 @@ ${foot(1)}
 <div class="head">${logoSvg}<div class="id">受付番号 ${no}<br>${dateJa(row.created_at)}</div></div>
 <h2>始めるときの進め方</h2>
 <ol class="steps">
-<li><b>1本だけ選ぶ</b><br>${first ? `まずは1位の「${esc(first.name)}」のように、時間がかかっていて手順の決まった業務を1本だけ選びます。` : "時間がかかっていて、手順の決まった業務を1本だけ選びます。"}いきなり全部をAIにしないことが、続けるいちばんの近道です。</li>
+<li><b>1本だけ選ぶ</b><br>${first ? `まずは1位の「${esc(first.name)}」のように、時間がかかっていて手順の決まった業務を1本だけ選びます。` : "時間がかかっていて、手順の決まった業務を1本だけ選びます。"}いきなり全部をAIにしないことが、続けるいちばんの近道です。${SIZE_TIP[row.size] ? esc(SIZE_TIP[row.size]) : ""}</li>
 <li><b>今の時間を測る</b><br>始める前に、その業務に週何時間かかっているかを1〜2週間記録します。導入の後と比べて、続けるかどうかを決める材料になります。</li>
 <li><b>下書きはAI、判断は人</b><br>AIが下書きや転記をして、人が確かめて送る形から始めます。${anyUnstd ? "手順が人によって違う業務は、先に手順を1枚の紙にそろえます。" : "送る・決めるといった判断は、これまでどおり人が持ちます。"}</li>
 <li><b>入れてよい情報を決める</b><br>お客さまの個人情報や社外秘の資料を、どのツールに入れてよいかを先に決め、社内のルールにします。</li>
@@ -324,7 +369,7 @@ export async function processRequest(id, token, logoSvg) {
 	if (!row) return;
 	if (row.status === "sent") return;
 	const no = receiptNo(row.id, row.created_at);
-	const rows = rank(JSON.parse(row.answers));
+	const rows = rank(JSON.parse(row.answers), row.industry);
 	const top = rows.filter((r) => r.score > 0).slice(0, 3);
 	const summary = top.length ? top.map((r, i) => `${i + 1}位　${r.name}（任せやすさ ${level(r.score)}）`).join("\n") : "時間を使っている業務は見つかりませんでした。";
 	const ownerLines = [

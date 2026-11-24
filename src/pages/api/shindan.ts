@@ -29,9 +29,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 	if (!name) return fail(400, "お名前を入力してください。");
 	if (!EMAIL_RE.test(email)) return fail(400, "メールアドレスの形を確かめてください。");
 	if (!b.agree) return fail(400, "プライバシーポリシーへの同意が必要です。");
-	const answers = shindan.parseAnswers(b.answers);
-	if (!answers) return fail(400, "診断の回答がそろっていません。もう一度「結果を見る」を押してからお試しください。");
 	const industry = shindan.INDUSTRIES.includes(b.industry) ? b.industry : "そのほか";
+	const answers = shindan.parseAnswers(b.answers, industry);
+	if (!answers) return fail(400, "診断の回答がそろっていません。もう一度「結果を見る」を押してからお試しください。");
 	const size = shindan.SIZES.includes(b.size) ? b.size : "5〜20名";
 
 	const ip = clientAddress || request.headers.get("cf-connecting-ip") || "unknown";
