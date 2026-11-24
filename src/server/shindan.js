@@ -246,8 +246,9 @@ export async function htmlToPdf(html) {
 	try {
 		const page = await browser.newPage();
 		await page.setViewport({ width: 794, height: 1123 });
-		await page.setContent(html, { waitUntil: "networkidle0", timeout: 25000 });
-		await page.evaluate(() => document.fonts.ready);
+		// networkidle0 はフォントの読み込みで止まることがあるため、load まで待ってからフォントを最大10秒待つ
+		await page.setContent(html, { waitUntil: "load", timeout: 30000 });
+		await page.evaluate(() => Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 10000))]));
 		const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true, margin: { top: 0, right: 0, bottom: 0, left: 0 } });
 		return new Uint8Array(pdf);
 	} finally {
